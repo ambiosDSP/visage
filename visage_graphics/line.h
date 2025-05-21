@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include <vector>
 namespace visage {
   struct Line {
     static constexpr int kLineVerticesPerPoint = 6;

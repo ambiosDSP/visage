@@ -19,7 +19,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include "emoji.h"
+#include "../emoji.h"
 #include "visage_utils/string_utils.h"
 
 #include <d2d1.h>

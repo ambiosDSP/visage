@@ -19,9 +19,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include "defines.h"
+#include "../defines.h"
 
-#include "string_utils.h"
+#include "../string_utils.h"
 
 #include <iostream>
 

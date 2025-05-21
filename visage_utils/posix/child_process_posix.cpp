@@ -19,7 +19,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include "child_process.h"
+#include "../child_process.h"
 
 #include <spawn.h>
 #include <sstream>

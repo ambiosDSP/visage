@@ -50,6 +50,8 @@ function(amalgamate_sources AMALGAMATED_SOURCE FILE_SOURCES)
   file(CONFIGURE OUTPUT "${AMALGAMATED_SOURCE}" CONTENT "${FILE_CONTENTS}")
 endfunction()
 
+include(FetchContent)
+
 add_subdirectory(visage_file_embed)
 add_subdirectory(visage_graphics)
 add_subdirectory(visage_ui)
