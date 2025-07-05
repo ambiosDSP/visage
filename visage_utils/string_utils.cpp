@@ -24,7 +24,7 @@
 #include <algorithm>
 
 namespace visage {
-  std::string encodeDataBase64(const char* data, size_t size) {
+  std::string encodeDataBase64(const unsigned char* data, size_t size) {
     static const char* kBase64Chars =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -45,11 +45,11 @@ namespace visage {
     return result;
   }
 
-  std::unique_ptr<char[]> decodeBase64Data(const std::string& string, int& size) {
+  std::unique_ptr<unsigned char[]> decodeBase64Data(const std::string& string, int& size) {
     int groups = string.size() / 4;
     int write_index = 0;
 
-    std::unique_ptr<char[]> result = std::make_unique<char[]>(groups * 3);
+    std::unique_ptr<unsigned char[]> result = std::make_unique<unsigned char[]>(groups * 3);
     auto base64_value = [](char character) {
       if (character >= 'A' && character <= 'Z')
         return character - 'A';

@@ -98,6 +98,7 @@ namespace visage {
     virtual void runEventLoop() = 0;
     virtual void* nativeHandle() const = 0;
     virtual void windowContentsResized(int width, int height) = 0;
+    virtual bool closeRequested() { return true; }
 
     virtual void* initWindow() const { return nullptr; }
     virtual void* globalDisplay() const { return nullptr; }
@@ -107,6 +108,7 @@ namespace visage {
     virtual void show() = 0;
     virtual void showMaximized() = 0;
     virtual void hide() = 0;
+    virtual void close() = 0;
     virtual bool isShowing() const = 0;
     virtual void setWindowTitle(const std::string& title) = 0;
     virtual IPoint maxWindowDimensions() const = 0;
@@ -247,4 +249,6 @@ namespace visage {
   inline IBounds computeWindowBounds(const Dimension& width, const Dimension& height) {
     return computeWindowBounds({}, {}, width, height);
   }
+
+  void closeApplication();
 }

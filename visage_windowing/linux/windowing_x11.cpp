@@ -55,6 +55,12 @@ namespace visage {
       return false;
     }
 
+    void closeAll() const {
+      auto windows = native_window_lookup_;
+      for (auto& window : windows)
+        window.second->close();
+    }
+
     WindowX11* findWindow(::Window handle) {
       auto it = native_window_lookup_.find((void*)handle);
       return it != native_window_lookup_.end() ? it->second : nullptr;
@@ -311,7 +317,7 @@ namespace visage {
         if (result.bounds.width() == 0 || bounds.contains(point)) {
           result.bounds = bounds;
           if (output_info->mm_height && bounds.height())
-            result.dpi = bounds.height() * kInchToMm / output_info->mm_height;
+            result.dpi = std::max(Window::kDefaultDpi, bounds.height() * kInchToMm / output_info->mm_height);
           result.refresh_rate = refreshRate(screen_resources, info);
         }
         XRRFreeCrtcInfo(info);
@@ -457,6 +463,10 @@ namespace visage {
 
   void* headlessWindowHandle() {
     return nullptr;
+  }
+
+  void closeApplication() {
+    NativeWindowLookup::instance().closeAll();
   }
 
   std::unique_ptr<Window> createPluginWindow(const Dimension& width, const Dimension& height,
@@ -1344,16 +1354,7 @@ namespace visage {
       if (button == kMouseButtonLeft) {
         if (hit_test == HitTestResult::CloseButton &&
             handleHitTest(event.xbutton.x, event.xbutton.y) == HitTestResult::CloseButton) {
-          XEvent close_event = {};
-          close_event.xclient.type = ClientMessage;
-          close_event.xclient.window = window_handle_;
-          close_event.xclient.message_type = XInternAtom(x11_->display(), "WM_PROTOCOLS", True);
-          close_event.xclient.format = 32;
-          close_event.xclient.data.l[0] = x11_->deleteMessage();
-          close_event.xclient.data.l[1] = CurrentTime;
-
-          XSendEvent(x11_->display(), window_handle_, False, NoEventMask, &close_event);
-          XFlush(x11_->display());
+          close();
         }
         else if (hit_test == HitTestResult::MaximizeButton &&
                  handleHitTest(event.xbutton.x, event.xbutton.y) == HitTestResult::MaximizeButton) {
@@ -1474,10 +1475,12 @@ namespace visage {
 
           if (event.type == DestroyNotify ||
               (event.type == ClientMessage && event.xclient.data.l[0] == x11_->deleteMessage())) {
-            NativeWindowLookup::instance().removeWindow(window);
-            window->hide();
-            if (!NativeWindowLookup::instance().anyWindowOpen())
-              running = false;
+            if (window->closeRequested()) {
+              NativeWindowLookup::instance().removeWindow(window);
+              window->hide();
+              if (!NativeWindowLookup::instance().anyWindowOpen())
+                running = false;
+            }
           }
           else
             window->processEvent(event);
@@ -1540,6 +1543,19 @@ namespace visage {
     XUnmapWindow(display, window_handle_);
     XFlush(display);
     notifyHide();
+  }
+
+  void WindowX11::close() {
+    XEvent close_event = {};
+    close_event.xclient.type = ClientMessage;
+    close_event.xclient.window = window_handle_;
+    close_event.xclient.message_type = XInternAtom(x11_->display(), "WM_PROTOCOLS", True);
+    close_event.xclient.format = 32;
+    close_event.xclient.data.l[0] = x11_->deleteMessage();
+    close_event.xclient.data.l[1] = CurrentTime;
+
+    XSendEvent(x11_->display(), window_handle_, False, NoEventMask, &close_event);
+    XFlush(x11_->display());
   }
 
   bool WindowX11::isShowing() const {

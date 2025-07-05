@@ -381,7 +381,7 @@ namespace visage {
     }
 
     template<typename T1, typename T2, typename T3, typename T4, typename T5>
-    void svg(const char* svg_data, int svg_size, const T1& x, const T2& y, const T3& width,
+    void svg(const unsigned char* svg_data, int svg_size, const T1& x, const T2& y, const T3& width,
              const T4& height, const T5& blur_radius) {
       int w = std::round(pixels(width));
       int h = std::round(pixels(height));
@@ -390,7 +390,7 @@ namespace visage {
     }
 
     template<typename T1, typename T2, typename T3, typename T4>
-    void svg(const char* svg_data, int svg_size, const T1& x, const T2& y, const T3& width,
+    void svg(const unsigned char* svg_data, int svg_size, const T1& x, const T2& y, const T3& width,
              const T4& height) {
       int w = std::round(pixels(width));
       int h = std::round(pixels(height));
@@ -417,8 +417,8 @@ namespace visage {
     }
 
     template<typename T1, typename T2, typename T3, typename T4>
-    void image(const char* image_data, int image_size, const T1& x, const T2& y, const T3& width,
-               const T4& height) {
+    void image(const unsigned char* image_data, int image_size, const T1& x, const T2& y,
+               const T3& width, const T4& height) {
       int w = std::round(pixels(width));
       int h = std::round(pixels(height));
       addImage({ image_data, image_size, w, h }, pixels(x), pixels(y));

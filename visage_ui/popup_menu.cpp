@@ -28,6 +28,7 @@ namespace visage {
   VISAGE_THEME_COLOR(PopupMenuBackground, 0xff262a2e);
   VISAGE_THEME_COLOR(PopupMenuBorder, 0xff606265);
   VISAGE_THEME_COLOR(PopupMenuText, 0xffeeeeee);
+  VISAGE_THEME_COLOR(PopupMenuDisabledText, 0xff888888);
   VISAGE_THEME_COLOR(PopupMenuSelection, 0xffaa88ff);
   VISAGE_THEME_COLOR(PopupMenuSelectionText, 0xffffffff);
 
@@ -83,7 +84,8 @@ namespace visage {
 
     int option_height = paletteValue(PopupOptionHeight);
     for (int i = 0; i < options_.size(); ++i) {
-      if (!options_[i].isBreak() && position.y >= y && position.y < y + option_height) {
+      if (!options_[i].isBreak() && options_[i].enabled() && position.y >= y &&
+          position.y < y + option_height) {
         hover_index_ = i;
         return;
       }
@@ -110,13 +112,13 @@ namespace visage {
     canvas.setColor(border);
     canvas.roundedRectangleBorder(0, 0, width(), height(), 8.0f, 1);
 
-    canvas.setColor(PopupMenuText);
     int selection_padding = paletteValue(PopupSelectionPadding);
     int x_padding = selection_padding + paletteValue(PopupTextPadding);
     int option_height = paletteValue(PopupOptionHeight);
     int y = selection_padding - yPosition();
 
     Brush text = canvas.color(PopupMenuText).withMultipliedAlpha(opacity_);
+    Brush disabled_text = canvas.color(PopupMenuDisabledText).withMultipliedAlpha(opacity_);
     Brush selected_text = canvas.color(PopupMenuSelectionText).withMultipliedAlpha(opacity_);
     for (int i = 0; i < options_.size(); ++i) {
       if (y + option_height > 0 && y < height()) {
@@ -130,11 +132,13 @@ namespace visage {
                                     option_height, 4.0f);
             canvas.setColor(selected_text);
           }
-          else
+          else if (options_[i].enabled())
             canvas.setColor(text);
+          else
+            canvas.setColor(disabled_text);
 
           int popup_font_size = paletteValue(PopupFontSize);
-          Font font(popup_font_size, font_.fontData(), font_.dataSize());
+          Font font = font_.withSize(popup_font_size);
           canvas.text(options_[i].name(), font, Font::kLeft, x_padding, y, width(), option_height);
 
           if (options_[i].hasOptions()) {
@@ -252,7 +256,7 @@ namespace visage {
     for (int i = 1; i < kMaxSubMenus; ++i)
       lists_[i].setVisible(false);
 
-    font_ = Font(paletteValue(PopupFontSize), font_.fontData(), font_.dataSize());
+    font_ = font_.withSize(paletteValue(PopupFontSize));
     setListFonts(font_);
 
     lists_[0].setOptions(menu_.options());
@@ -260,8 +264,8 @@ namespace visage {
     int w = lists_[0].renderWidth();
 
     Bounds window_bounds = parent_->relativeBounds(source);
-    int x = point.x == PopupMenu::kNotSet ? window_bounds.x() : point.x;
-    int y = point.y == PopupMenu::kNotSet ? window_bounds.bottom() : point.y;
+    int x = point.x == PopupMenu::kNotSet ? window_bounds.x() : window_bounds.x() + point.x;
+    int y = point.y == PopupMenu::kNotSet ? window_bounds.bottom() : window_bounds.y() + point.y;
     int bottom = y + h;
     int right = x + w;
     if (bottom > height()) {
@@ -341,8 +345,10 @@ namespace visage {
   }
 
   void PopupMenuFrame::optionSelected(const PopupMenu& option, PopupList* list) {
-    if (isVisible())
+    if (isVisible()) {
+      option.onSelection().callback(option.id());
       menu_.onSelection().callback(option.id());
+    }
     else
       menu_.onCancel().callback();
 
@@ -416,7 +422,7 @@ namespace visage {
     setVisible(true);
     text_ = text;
 
-    Font font(paletteValue(PopupFontSize), font_.fontData(), font_.dataSize(), dpiScale());
+    Font font = font_.withSize(paletteValue(PopupFontSize));
     int x_padding = paletteValue(PopupSelectionPadding) + paletteValue(PopupTextPadding);
     int width = font.stringWidth(text.c_str(), text.length()) + 2 * x_padding;
     int height = paletteValue(PopupOptionHeight);
@@ -436,7 +442,7 @@ namespace visage {
   }
 
   void ValueDisplay::draw(Canvas& canvas) {
-    Font font(canvas.value(PopupFontSize), font_.fontData(), font_.dataSize());
+    Font font = font_.withSize(paletteValue(PopupFontSize));
     canvas.setColor(PopupMenuBackground);
     canvas.roundedRectangle(0, 0, width(), height(), 8.0f);
 
